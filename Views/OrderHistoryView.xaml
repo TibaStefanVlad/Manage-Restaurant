@@ -1,0 +1,261 @@
+﻿<UserControl x:Class="Restaurant.Views.OrderHistoryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Restaurant.Views"
+             xmlns:converters="clr-namespace:Restaurant.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="800">
+
+    <UserControl.Resources>
+        <converters:BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <converters:BoolToVisibilityInverseConverter x:Key="BoolToVisibilityInverseConverter"/>
+        <converters:IntToVisibilityConverter x:Key="IntToVisibilityConverter"/>
+        <converters:IntToVisibilityInverseConverter x:Key="IntToVisibilityInverseConverter"/>
+        <Style x:Key="StatusTagStyle" TargetType="Border">
+            <Setter Property="CornerRadius" Value="2"/>
+            <Setter Property="Padding" Value="6,2"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="Margin" Value="0,5,0,0"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header with refresh button -->
+        <Grid Grid.Row="0" Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Text="My Orders" FontSize="20" FontWeight="Bold" Grid.Column="0"/>
+
+            <Button Content="Refresh" Grid.Column="1" Command="{Binding RefreshOrdersCommand}" 
+                    Padding="10,5"/>
+        </Grid>
+
+        <!-- Orders layout -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Orders list -->
+            <Border BorderBrush="#E0E0E0" BorderThickness="1" Grid.Column="0">
+                <DockPanel LastChildFill="True">
+                    <!-- Tabs for all vs active orders -->
+                    <TabControl DockPanel.Dock="Top">
+                        <TabItem Header="All Orders">
+                            <ListBox ItemsSource="{Binding AllOrders}" 
+                                     SelectedItem="{Binding SelectedOrder}"
+                                     Height="500" 
+                                     BorderThickness="0">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Padding="10" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Width="280">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding OrderCode}" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding OrderDate, StringFormat='dd MMM yyyy, HH:mm'}" 
+                                                           FontSize="12" Margin="0,3,0,0"/>
+
+                                                <!-- Order status -->
+                                                <Border Style="{StaticResource StatusTagStyle}"
+                                                        Background="{Binding OrderStatus, Converter={StaticResource OrderStatusToColorConverter}}">
+                                                    <TextBlock Text="{Binding OrderStatus}" 
+                                                               Foreground="White" 
+                                                               FontSize="12" 
+                                                               FontWeight="SemiBold"/>
+                                                </Border>
+
+                                                <!-- Order total -->
+                                                <TextBlock Text="{Binding Total, StringFormat='Total: {0:C}'}" 
+                                                           Margin="0,5,0,0" 
+                                                           FontWeight="SemiBold" 
+                                                           HorizontalAlignment="Right"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </TabItem>
+
+                        <TabItem Header="Active Orders">
+                            <ListBox ItemsSource="{Binding ActiveOrders}" 
+                                     SelectedItem="{Binding SelectedOrder}"
+                                     Height="500" 
+                                     BorderThickness="0">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Padding="10" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Width="280">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding OrderCode}" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding OrderDate, StringFormat='dd MMM yyyy, HH:mm'}" 
+                                                           FontSize="12" Margin="0,3,0,0"/>
+
+                                                <!-- Order status -->
+                                                <Border Style="{StaticResource StatusTagStyle}"
+                                                        Background="{Binding OrderStatus, Converter={StaticResource OrderStatusToColorConverter}}">
+                                                    <TextBlock Text="{Binding OrderStatus}" 
+                                                               Foreground="White" 
+                                                               FontSize="12" 
+                                                               FontWeight="SemiBold"/>
+                                                </Border>
+
+                                                <!-- Estimated delivery -->
+                                                <TextBlock Text="{Binding EstimatedDeliveryTime, StringFormat='Delivery: {0:HH:mm}'}" 
+                                                           Visibility="{Binding EstimatedDeliveryTime, Converter={StaticResource NullToVisibilityConverter}}"
+                                                           Margin="0,5,0,0" 
+                                                           FontSize="12"/>
+
+                                                <!-- Order total -->
+                                                <TextBlock Text="{Binding Total, StringFormat='Total: {0:C}'}" 
+                                                           Margin="0,5,0,0" 
+                                                           FontWeight="SemiBold" 
+                                                           HorizontalAlignment="Right"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </TabItem>
+                    </TabControl>
+                </DockPanel>
+            </Border>
+
+            <!-- Order details -->
+            <Border Grid.Column="1" BorderBrush="#E0E0E0" BorderThickness="0,1,1,1" 
+                   Visibility="{Binding SelectedOrder, Converter={StaticResource NullToVisibilityConverter}}">
+                <DockPanel LastChildFill="True" Margin="20">
+                    <!-- Order header -->
+                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,15">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="{Binding SelectedOrder.OrderCode}" FontSize="18" FontWeight="Bold"/>
+                                <TextBlock Text="{Binding SelectedOrder.OrderDate, StringFormat='Placed on: {0:dd MMMM yyyy, HH:mm}'}" 
+                                         Margin="0,5,0,0"/>
+                            </StackPanel>
+
+                            <Button Grid.Column="1" Content="Cancel Order" 
+                                    Command="{Binding CancelOrderCommand}" 
+                                    CommandParameter="{Binding SelectedOrder}"
+                                    Background="#F44336" Foreground="White" 
+                                    Padding="10,5" BorderThickness="0"
+                                    Visibility="{Binding SelectedOrder.OrderStatus, Converter={StaticResource OrderStatusToCancelVisibilityConverter}}"/>
+                        </Grid>
+
+                        <!-- Order status -->
+                        <Border Style="{StaticResource StatusTagStyle}"
+                                Background="{Binding SelectedOrder.OrderStatus, Converter={StaticResource OrderStatusToColorConverter}}"
+                                Margin="0,10,0,0">
+                            <TextBlock Text="{Binding SelectedOrder.OrderStatus}" 
+                                     Foreground="White" 
+                                     FontSize="12" 
+                                     FontWeight="SemiBold"/>
+                        </Border>
+
+                        <!-- Estimated delivery -->
+                        <TextBlock Text="{Binding SelectedOrder.EstimatedDeliveryTime, StringFormat='Estimated delivery: {0:dd MMM, HH:mm}'}" 
+                                 Visibility="{Binding SelectedOrder.EstimatedDeliveryTime, Converter={StaticResource NullToVisibilityConverter}}"
+                                 Margin="0,10,0,0"/>
+                    </StackPanel>
+
+                    <!-- Order items -->
+                    <Border DockPanel.Dock="Top" BorderBrush="#E0E0E0" BorderThickness="0,1,0,1" Padding="0,15,0,15">
+                        <StackPanel>
+                            <TextBlock Text="Order Items" FontWeight="SemiBold" Margin="0,0,0,10"/>
+
+                            <ItemsControl ItemsSource="{Binding SelectedOrderItems}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,5">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Grid.Column="0" Text="{Binding Quantity}" 
+                                                     FontWeight="SemiBold" MinWidth="30"/>
+
+                                            <TextBlock Grid.Column="1" TextWrapping="Wrap">
+                                                <Run Text="{Binding Dish.Name}"/>
+                                                <Run Text="{Binding Menu.Name}"/>
+                                            </TextBlock>
+
+                                            <TextBlock Grid.Column="2" Text="{Binding TotalPrice, StringFormat='{}{0:C}'}" 
+                                                     HorizontalAlignment="Right" MinWidth="70"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Order summary -->
+                    <StackPanel DockPanel.Dock="Bottom" Margin="0,15,0,0">
+                        <Grid Margin="0,5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Subtotal:" Grid.Column="0" HorizontalAlignment="Left"/>
+                            <TextBlock Text="{Binding SelectedOrder.SubTotal, StringFormat='{}{0:C}'}" Grid.Column="1" HorizontalAlignment="Right"/>
+                        </Grid>
+
+                        <Grid Margin="0,5" Visibility="{Binding SelectedOrder.DiscountAmount, Converter={StaticResource DecimalToVisibilityConverter}}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Discount:" Grid.Column="0" HorizontalAlignment="Left"/>
+                            <TextBlock Text="{Binding SelectedOrder.DiscountAmount, StringFormat='-{0:C}'}" Grid.Column="1" 
+                                     HorizontalAlignment="Right" Foreground="#4CAF50"/>
+                        </Grid>
+
+                        <Grid Margin="0,5" Visibility="{Binding SelectedOrder.ShippingCost, Converter={StaticResource DecimalToVisibilityConverter}}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Shipping:" Grid.Column="0" HorizontalAlignment="Left"/>
+                            <TextBlock Text="{Binding SelectedOrder.ShippingCost, StringFormat='{}{0:C}'}" Grid.Column="1" HorizontalAlignment="Right"/>
+                        </Grid>
+
+                        <Border BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Margin="0,5,0,10"/>
+
+                        <Grid Margin="0,5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Total:" Grid.Column="0" HorizontalAlignment="Left" FontWeight="Bold"/>
+                            <TextBlock Text="{Binding SelectedOrder.Total, StringFormat='{}{0:C}'}" Grid.Column="1" 
+                                     HorizontalAlignment="Right" FontWeight="Bold"/>
+                        </Grid>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <!-- No order selected message -->
+            <Border Grid.Column="1" BorderBrush="#E0E0E0" BorderThickness="0,1,1,1"
+                   Visibility="{Binding SelectedOrder, Converter={StaticResource NullToVisibilityInverseConverter}}">
+                <TextBlock Text="Select an order to view details" 
+                         HorizontalAlignment="Center" 
+                         VerticalAlignment="Center" 
+                         Foreground="Gray"/>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>
